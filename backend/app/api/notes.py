@@ -1,34 +1,57 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response, Query
 from sqlalchemy import select
 
 from app.models import notes_models
 from app.dependencies import SessionDep
 from app.db.models.notes_db import Notes
 
+from typing import Annotated
+import uuid
+
 router = APIRouter(prefix = "/v1/notes")
 
-@router.get("/")
-async def get_all_notes(session: SessionDep, limit: int = 10) -> notes_models.NotesGet:
+@router.get("/", response_model=notes_models.NotesGet)
+async def get_all_notes(session: SessionDep, limit: Annotated[int, Query(ge=1, le=100)] = 10):
     result = await session.execute(select(Notes).order_by(Notes.created_at).limit(limit))
     notes = result.scalars().all()
-    return notes_models.NotesGet.model_validate({"notes": notes})
+    return {"notes": notes}
 
-@router.post("/")
-async def create_note(session: SessionDep, note: notes_models.NoteCreate) -> notes_models.NoteResponse:
+@router.post("/", response_model=notes_models.NoteResponse)
+async def create_note(session: SessionDep, note: notes_models.NoteCreate):
     note_orm = Notes(title = note.title, content = note.content)
     session.add(note_orm)
     await session.commit()
     await session.refresh(note_orm)
-    return notes_models.NoteResponse.model_validate(note_orm)
+    return note_orm
 
-@router.get("/{note_id}")
-async def get_note(note_id: int) -> notes_models.NoteResponse:
-    pass
+@router.get("/{note_id}", response_model=notes_models.NoteResponse)
+async def get_note(session: SessionDep, note_id: uuid.UUID):
+    result = await session.get(Notes, note_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Note not found")
+    return result
 
-@router.put("/{note_id}")
-async def update_note(note_id: int, note: notes_models.NoteUpdate) -> notes_models.NoteResponse:
-    pass
+@router.patch("/{note_id}", response_model=notes_models.NoteResponse)
+async def update_note(session: SessionDep, note_id: uuid.UUID, note: notes_models.NoteUpdate):
+    result = await session.get(Notes, note_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Note not found")
+    note_details = note.model_dump(exclude_unset=True)
+    if not note_details:
+        return result
+    for key, value in note_details.items():
+        if key in {'id', 'created_at', 'updated_at'}:
+            continue
+        setattr(result, key, value)
+    await session.commit()
+    await session.refresh(result)
+    return result
 
 @router.delete("/{note_id}")
-async def delete_note(note_id: int):
-    pass
+async def delete_note(session: SessionDep, note_id: uuid.UUID):
+    result = await session.get(Notes, note_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Note not found")
+    await session.delete(result)
+    await session.commit()
+    return Response(status_code=204)
