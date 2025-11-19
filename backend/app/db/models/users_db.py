@@ -22,4 +22,4 @@ class Users(Base):
     hashed_password: Mapped[str] = mapped_column(String[125])
     age: Mapped[int] = mapped_column(Integer)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    disabled: Mapped[Boolean] = mapped_column(Boolean, server_default=False)
+    disabled: Mapped[Boolean] = mapped_column(Boolean, default=False)
