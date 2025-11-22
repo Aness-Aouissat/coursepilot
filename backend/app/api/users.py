@@ -4,7 +4,7 @@ from sqlalchemy import select
 from app.models import user_models
 from app.db.models.users_db import Users
 from app.dependencies import SessionDep, UserDep
-from app.services.security import get_password_hash, verify_password, ACCESS_TOKEN_EXPIRE_MINUTES, generate_complete_user_token
+from app.services.security import get_password_hash, verify_password, generate_complete_user_token
 
 from typing import Annotated
 
