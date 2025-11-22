@@ -19,7 +19,7 @@ class Users(Base):
     first_name: Mapped[str] = mapped_column(String[50])
     last_name: Mapped[str] = mapped_column(String[50])
     email: Mapped[str] = mapped_column(String[100])
-    hashed_password: Mapped[str] = mapped_column(String[125])
+    hashed_password: Mapped[str] = mapped_column(String[175])
     age: Mapped[int] = mapped_column(Integer)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     disabled: Mapped[Boolean] = mapped_column(Boolean, default=False)
