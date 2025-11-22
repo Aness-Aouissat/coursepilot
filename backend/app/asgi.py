@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from .api import notes
+from .api import users
 from app.db.init_db import create_db_and_tables
 from contextlib import asynccontextmanager
 
@@ -16,6 +17,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan
     )
     app.include_router(notes.router)
+    app.include_router(users.router)
     return app
 
 app = create_app()
