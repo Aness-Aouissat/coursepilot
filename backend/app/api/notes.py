@@ -2,7 +2,7 @@ from fastapi import APIRouter, Response, Query, Body, Path
 
 from app.models.notes_models import NotesGet, NoteResponse, NoteCreate, NoteUpdate
 from app.dependencies import SessionDep, UserDep
-from backend.app.services.notes_services import (
+from app.services.notes_services import (
     get_all_notes_service,
     create_note_service, 
     get_note_service,

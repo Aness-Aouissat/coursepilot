@@ -2,7 +2,7 @@ from fastapi import APIRouter, Response, Body
 
 from app.models.user_models import SignUpResponse, Register, UsersBase, Token, LogIn, UserDelete
 from app.dependencies import SessionDep, UserDep
-from backend.app.services.users_services import (
+from app.services.users_services import (
     register_user_service,
     login_user_service,
     delete_user_service
