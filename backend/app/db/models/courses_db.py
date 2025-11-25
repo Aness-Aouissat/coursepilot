@@ -15,7 +15,7 @@ class Courses(Base):
     __tablename__ = "courses_table"
     user: Mapped["Users"] = relationship(back_populates="courses")
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users_table.id", ondelete="CASCADE"), nullable=False)
-    notes: Mapped["Notes"] = relationship(back_populates="course")
+    notes: Mapped[list["Notes"]] = relationship(back_populates="course", cascade="all, delete")
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title: Mapped[str] = mapped_column(String(255))
