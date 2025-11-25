@@ -8,7 +8,6 @@ from sqlalchemy.dialects.postgresql import UUID
 from app.db.session import Base
 
 if TYPE_CHECKING:
-    from .users_db import Users
     from .courses_db import Courses
 
 class Notes(Base):
