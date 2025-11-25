@@ -3,26 +3,35 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.db.models.notes_db import Notes
+from app.db.models.courses_db import Courses
 from app.models.notes_models import NoteCreate, NoteUpdate
 
 import uuid
 
 async def get_all_notes_service(
     user_id: uuid.UUID, 
+    course_id: uuid.UUID, 
     limit: int, 
     session: AsyncSession
 ):
-    result = await session.execute(select(Notes).order_by(Notes.created_at).limit(limit).where(Notes.user_id == user_id))
+    result = await session.execute(
+        select(Notes)
+        .join(Notes.course)
+        .where(Notes.course_id == course_id)
+        .where(Courses.user_id == user_id)
+        .order_by(Notes.created_at)
+        .limit(limit)
+)
     notes = result.scalars().all()
     
     return notes
 
-async def create_note_service(
-    user_id: uuid.UUID,
+async def create_note_service( 
+    course_id: uuid.UUID,
     data: NoteCreate,
     session: AsyncSession
 ):
-    note = Notes(user_id = user_id, title = data.title, content = data.content)
+    note = Notes(course_id = course_id, title = data.title, content = data.content)
 
     session.add(note)
     await session.commit()
@@ -38,7 +47,7 @@ async def get_note_service(
     note = await session.get(Notes, note_id)
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
-    if note.user_id != user_id:
+    if note.course.user_id != user_id:
         raise HTTPException(status_code=401, detail="Unauthorized user")
     
     return note
@@ -52,7 +61,7 @@ async def update_note_service(
     note = await session.get(Notes, note_id)
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
-    if note.user_id != user_id:
+    if note.course.user_id != user_id:
         raise HTTPException(status_code=401, detail="Unauthorized user")
     
     note_update_details = data.model_dump(exclude_unset=True)
@@ -74,7 +83,7 @@ async def delete_note_service(
     note = await session.get(Notes, note_id)
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
-    if note.user_id != user_id:
+    if note.course.user_id != user_id:
         raise HTTPException(status_code=401, detail="Unauthorized user")
     
     await session.delete(note)

@@ -13,13 +13,11 @@ if TYPE_CHECKING:
 
 class Notes(Base):
     __tablename__ = "notes_table"
-    user: Mapped["Users"] = relationship(back_populates="notes")
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users_table.id", ondelete="CASCADE"), nullable=False)
     course: Mapped["Courses"] = relationship(back_populates="notes")
     course_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("courses_table.id", ondelete="CASCADE"), nullable=False)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    title: Mapped[str] = mapped_column(String(255))
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False, server_default="")
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

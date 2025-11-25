@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Response, Query, Body, Path
 
-from app.models.notes_models import NotesGet, NoteResponse, NoteCreate, NoteUpdate
+from app.models.notes_models import NoteCreate, NoteList, NoteRead, NoteUpdate
 from app.dependencies import SessionDep, UserDep
 from app.services.notes_services import (
     get_all_notes_service,
@@ -15,27 +15,29 @@ import uuid
 
 router = APIRouter(prefix = "/v1/notes")
 
-@router.get("/", response_model=NotesGet)
+@router.get("/", response_model=NoteList)
 async def get_all_notes(
     session: SessionDep, 
     user: UserDep,
+    course_id: Annotated[uuid.UUID, Query()],
     limit: Annotated[int, Query(ge=1, le=100)] = 10,
 ):
-    notes = await get_all_notes_service(user.id, limit, session)
+    notes = await get_all_notes_service(user.id, course_id, limit, session)
 
     return {"notes": notes}
 
-@router.post("/", response_model=NoteResponse)
+@router.post("/", response_model=NoteRead)
 async def create_note(
     session: SessionDep, 
     user: UserDep,
-    note: Annotated[NoteCreate, Body()]
+    course_id: Annotated[uuid.UUID, Query()], 
+    note_details: Annotated[NoteCreate, Body()]
 ):
-    note_orm = await create_note_service(user.id, note, session)
+    note = await create_note_service(user.id, course_id, note_details, session)
 
-    return note_orm
+    return note
 
-@router.get("/{note_id}", response_model=NoteResponse)
+@router.get("/{note_id}", response_model=NoteRead)
 async def get_note(
     session: SessionDep,
     user: UserDep, 
@@ -45,7 +47,7 @@ async def get_note(
     
     return note
 
-@router.patch("/{note_id}", response_model=NoteResponse)
+@router.patch("/{note_id}", response_model=NoteRead)
 async def update_note(
     session: SessionDep, 
     user: UserDep,
